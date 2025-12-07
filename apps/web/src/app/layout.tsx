@@ -4,13 +4,12 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { createMetadata } from '@/lib/metadata';
+import ErrorBoundary from '@/components/error-boundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Mokwa The Developer | Portfolio',
-  description: 'Modern developer portfolio showcasing projects and skills',
-};
+export const metadata: Metadata = createMetadata();
 
 export default function RootLayout({
   children,
@@ -26,11 +25,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ErrorBoundary>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>
