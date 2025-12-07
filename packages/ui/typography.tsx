@@ -27,14 +27,23 @@ export interface HeadingProps
 
 const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
   ({ className, level = 1, ...props }, ref) => {
-    const Comp = `h${level}` as keyof JSX.IntrinsicElements;
-    return (
-      <Comp
-        ref={ref}
-        className={cn(headingVariants({ level, className }))}
-        {...props}
-      />
-    );
+    const Component =
+      level === 1
+        ? 'h1'
+        : level === 2
+          ? 'h2'
+          : level === 3
+            ? 'h3'
+            : level === 4
+              ? 'h4'
+              : level === 5
+                ? 'h5'
+                : 'h6';
+    return React.createElement(Component, {
+      ref,
+      className: cn(headingVariants({ level, className })),
+      ...props,
+    });
   }
 );
 Heading.displayName = 'Heading';
