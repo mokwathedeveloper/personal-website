@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from '@repo/ui';
 
 export function Navbar() {
   return (
@@ -7,7 +8,7 @@ export function Navbar() {
         <Link href="/" className="text-xl font-bold">
           Portfolio
         </Link>
-        <div className="flex gap-6">
+        <div className="flex items-center gap-6">
           <Link href="/about" className="hover:text-primary">
             About
           </Link>
@@ -20,6 +21,7 @@ export function Navbar() {
           <Link href="/contact" className="hover:text-primary">
             Contact
           </Link>
+          <ThemeToggle />
         </div>
       </div>
     </nav>

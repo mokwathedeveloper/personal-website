@@ -6,3 +6,7 @@ export * from './skeleton';
 export * from './badge';
 export * from './avatar';
 export * from './icon';
+export * from './dialog';
+export * from './sheet';
+export * from './tooltip';
+export * from './theme-toggle';
