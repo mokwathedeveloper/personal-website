@@ -19,45 +19,21 @@ const sheetVariants = cva(
   }
 );
 
-interface SheetContextType {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const SheetContext = React.createContext<SheetContextType | null>(null);
-
 export interface SheetProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }
 
-const Sheet = ({ open = false, onOpenChange, children }: SheetProps) => {
-  return (
-    <SheetContext.Provider
-      value={{ open, onOpenChange: onOpenChange || (() => {}) }}
-    >
-      {children}
-    </SheetContext.Provider>
-  );
+const Sheet = ({ children }: SheetProps) => {
+  return <>{children}</>;
 };
 
 const SheetTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, onClick, ...props }, ref) => {
-  const context = React.useContext(SheetContext);
-  return (
-    <button
-      ref={ref}
-      className={className}
-      onClick={(e) => {
-        onClick?.(e);
-        context?.onOpenChange(true);
-      }}
-      {...props}
-    />
-  );
+>(({ className, ...props }, ref) => {
+  return <button ref={ref} className={className} {...props} />;
 });
 SheetTrigger.displayName = 'SheetTrigger';
 
@@ -68,16 +44,9 @@ export interface SheetContentProps
 
 const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
   ({ side = 'right', className, children, ...props }, ref) => {
-    const context = React.useContext(SheetContext);
-
-    if (!context?.open) return null;
-
     return (
       <div className="fixed inset-0 z-50">
-        <div
-          className="bg-background/80 fixed inset-0 backdrop-blur-sm"
-          onClick={() => context.onOpenChange(false)}
-        />
+        <div className="bg-background/80 fixed inset-0 backdrop-blur-sm" />
         <div
           ref={ref}
           className={cn(sheetVariants({ side }), className)}

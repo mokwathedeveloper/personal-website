@@ -1,15 +1,26 @@
+'use client';
+
 import * as React from 'react';
-import { useTheme } from 'next-themes';
 import { Button } from './button';
 import { Icon } from './icon';
 
 const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
+  const [theme, setTheme] = React.useState<string>('light');
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
 
   if (!mounted) {
     return <Button variant="ghost" size="icon" disabled />;
@@ -19,7 +30,7 @@ const ThemeToggle = () => {
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      onClick={toggleTheme}
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (

@@ -1,45 +1,21 @@
 import * as React from 'react';
 import { cn } from '../../apps/web/src/lib/utils';
 
-interface DialogContextType {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const DialogContext = React.createContext<DialogContextType | null>(null);
-
 export interface DialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }
 
-const Dialog = ({ open = false, onOpenChange, children }: DialogProps) => {
-  return (
-    <DialogContext.Provider
-      value={{ open, onOpenChange: onOpenChange || (() => {}) }}
-    >
-      {children}
-    </DialogContext.Provider>
-  );
+const Dialog = ({ children }: DialogProps) => {
+  return <>{children}</>;
 };
 
 const DialogTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, onClick, ...props }, ref) => {
-  const context = React.useContext(DialogContext);
-  return (
-    <button
-      ref={ref}
-      className={className}
-      onClick={(e) => {
-        onClick?.(e);
-        context?.onOpenChange(true);
-      }}
-      {...props}
-    />
-  );
+>(({ className, ...props }, ref) => {
+  return <button ref={ref} className={className} {...props} />;
 });
 DialogTrigger.displayName = 'DialogTrigger';
 
@@ -47,16 +23,9 @@ const DialogContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
-  const context = React.useContext(DialogContext);
-
-  if (!context?.open) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="bg-background/80 fixed inset-0 backdrop-blur-sm"
-        onClick={() => context.onOpenChange(false)}
-      />
+      <div className="bg-background/80 fixed inset-0 backdrop-blur-sm" />
       <div
         ref={ref}
         className={cn(
