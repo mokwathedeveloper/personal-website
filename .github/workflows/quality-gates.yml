@@ -63,6 +63,9 @@ jobs:
       - name: Build app
         run: npx pnpm build
 
+      - name: Check bundle size
+        run: npx pnpm --filter web check:size
+
       - name: Start app
         run: npx pnpm start &
 

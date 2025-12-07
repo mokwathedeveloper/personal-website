@@ -1,133 +1,159 @@
-import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-import { Container, Flex } from '@repo/ui';
-import { Display, Text } from '@repo/ui';
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Container,
+  Display,
+  Icon,
+  Input,
+  Label,
+  Text,
+  Textarea,
 } from '@repo/ui';
-import { Button } from '@repo/ui';
-import Link from 'next/link';
+import { contactSchema, type ContactFormValues } from '@/lib/validations';
 
-const Icon = dynamic(
-  () => import('@repo/ui').then((mod) => ({ default: mod.Icon })),
-  {
-    loading: () => <div className="bg-muted h-4 w-4 animate-pulse rounded" />,
-    ssr: false,
-  }
-);
+export default function ContactPage() {
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
-export const metadata: Metadata = {
-  title: 'Contact',
-  description:
-    'Get in touch for new opportunities, collaborations, or technical consultations.',
-};
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(contactSchema),
+  });
 
-const contactMethods = [
-  {
-    title: 'Email',
-    description: 'Send me a message anytime',
-    value: 'mokwa@example.com',
-    href: 'mailto:mokwa@example.com',
-    icon: 'mail' as const,
-  },
-  {
-    title: 'LinkedIn',
-    description: 'Connect with me professionally',
-    value: 'linkedin.com/in/mokwa',
-    href: 'https://linkedin.com/in/mokwa',
-    icon: 'linkedin' as const,
-  },
-  {
-    title: 'GitHub',
-    description: 'Check out my code',
-    value: 'github.com/mokwa',
-    href: 'https://github.com/mokwa',
-    icon: 'github' as const,
-  },
-  {
-    title: 'Twitter',
-    description: 'Follow me for tech updates',
-    value: '@mokwa_dev',
-    href: 'https://twitter.com/mokwa_dev',
-    icon: 'twitter' as const,
-  },
-];
+  const onSubmit = async (data: ContactFormValues) => {
+    setStatus('loading');
+    setErrorMessage('');
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-export default function Contact() {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Something went wrong.');
+      }
+
+      setStatus('success');
+      reset();
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(
+        error instanceof Error ? error.message : 'An unknown error occurred.'
+      );
+    }
+  };
+
   return (
-    <Container className="py-16">
+    <Container className="py-16 md:py-24">
       <div className="mb-12 text-center">
-        <Display className="mb-4">Get In Touch</Display>
-        <Text size="xl" variant="muted" className="mx-auto max-w-2xl">
-          I&apos;m always interested in new opportunities and collaborations.
-          Feel free to reach out if you&apos;d like to work together!
+        <Display>Get In Touch</Display>
+        <Text
+          size="lg"
+          className="text-muted-foreground mx-auto mt-4 max-w-3xl"
+        >
+          Have a project in mind, want to collaborate, or just want to say hi?
+          Fill out the form below or email me. I&apos;ll get back to you as soon
+          as possible.
         </Text>
       </div>
-      <div className="mb-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {contactMethods.map((method, index) => (
-          <Card
-            key={index}
-            className="text-center transition-shadow hover:shadow-lg"
-          >
-            <CardHeader>
-              <div className="bg-primary/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                <Icon name={method.icon} className="text-primary h-6 w-6" />
-              </div>
-              <CardTitle className="text-lg">{method.title}</CardTitle>
-              <CardDescription>{method.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" asChild className="w-full">
-                <Link
-                  href={method.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {method.value}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <Card className="mx-auto max-w-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Let&apos;s Work Together</CardTitle>
-          <CardDescription className="text-base">
-            I&apos;m currently available for freelance projects and full-time
-            opportunities
+
+      <Card className="mx-auto max-w-xl">
+        <CardHeader>
+          <CardTitle>Send a Message</CardTitle>
+          <CardDescription>
+            I typically respond within 24 hours.
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
-          <div className="space-y-4">
-            <Text className="leading-relaxed">
-              Whether you have a project in mind, need technical consultation,
-              or just want to chat about technology, I&apos;d love to hear from
-              you. I typically respond within 24 hours.
-            </Text>
-            <Flex gap={4} className="justify-center">
-              <Button size="lg" asChild>
-                <Link href="mailto:mokwa@example.com">
-                  <Icon name="mail" className="mr-2 h-4 w-4" />
-                  Send Email
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link
-                  href="https://linkedin.com/in/mokwa"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon name="linkedin" className="mr-2 h-4 w-4" />
-                  Connect on LinkedIn
-                </Link>
-              </Button>
-            </Flex>
-          </div>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Your Name"
+                {...register('name')}
+                disabled={status === 'loading'}
+              />
+              {errors.name && (
+                <Text size="sm" className="text-destructive">
+                  {errors.name.message}
+                </Text>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                {...register('email')}
+                disabled={status === 'loading'}
+              />
+              {errors.email && (
+                <Text size="sm" className="text-destructive">
+                  {errors.email.message}
+                </Text>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Hi Moffat, I'd like to talk about..."
+                {...register('message')}
+                disabled={status === 'loading'}
+                rows={5}
+              />
+              {errors.message && (
+                <Text size="sm" className="text-destructive">
+                  {errors.message.message}
+                </Text>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              loading={status === 'loading'}
+              disabled={status === 'loading'}
+            >
+              Send Message
+            </Button>
+          </form>
+          {status === 'success' && (
+            <div className="mt-4 flex items-center gap-x-2 rounded-md border border-green-500 bg-green-50 p-3 text-sm text-green-700">
+              <Icon name="check-circle" className="h-5 w-5" />
+              <p>
+                Thank you for your message! I&apos;ll get back to you shortly.
+              </p>
+            </div>
+          )}
+          {status === 'error' && (
+            <div className="mt-4 flex items-center gap-x-2 rounded-md border border-red-500 bg-red-50 p-3 text-sm text-red-700">
+              <Icon name="alert-triangle" className="h-5 w-5" />
+              <p>
+                <strong>Error:</strong> {errorMessage}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </Container>

@@ -42,7 +42,7 @@ class Monitoring {
   trackError(error: Error, context?: Record<string, unknown>) {
     this.track('error', 'counter', 1, {
       message: error.message,
-      stack: error.stack?.substring(0, 500),
+      stack: error.stack ? error.stack.substring(0, 500) : '',
       ...context,
     });
   }
@@ -85,17 +85,3 @@ class Monitoring {
 }
 
 export const monitoring = new Monitoring();
-
-// Web Vitals tracking
-export function trackWebVitals() {
-  if (typeof window === 'undefined') return;
-
-  // Track Core Web Vitals
-  import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-    getCLS((metric) => monitoring.trackPerformance('CLS', metric.value));
-    getFID((metric) => monitoring.trackPerformance('FID', metric.value));
-    getFCP((metric) => monitoring.trackPerformance('FCP', metric.value));
-    getLCP((metric) => monitoring.trackPerformance('LCP', metric.value));
-    getTTFB((metric) => monitoring.trackPerformance('TTFB', metric.value));
-  });
-}

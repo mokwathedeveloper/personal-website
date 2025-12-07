@@ -10,3 +10,6 @@ export * from './dialog';
 export * from './sheet';
 export * from './tooltip';
 export * from './theme-toggle';
+export * from './input';
+export * from './textarea';
+export * from './label';

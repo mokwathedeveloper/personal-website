@@ -1,3 +1,5 @@
+import { createClient } from '@vercel/edge-config';
+
 type FeatureFlag = {
   enabled: boolean;
   rolloutPercentage?: number;
@@ -18,26 +20,50 @@ const defaultFlags: FeatureFlags = {
   darkModeToggle: { enabled: true, rolloutPercentage: 100 },
 };
 
-export function getFeatureFlag(flag: keyof FeatureFlags): boolean {
-  if (typeof window === 'undefined') return defaultFlags[flag].enabled;
+async function getEdgeFlags(): Promise<Partial<FeatureFlags>> {
+  if (!process.env.EDGE_CONFIG) {
+    return {};
+  }
+  try {
+    const client = createClient(process.env.EDGE_CONFIG);
+    const flags = await client.get<FeatureFlags>('featureFlags');
+    return flags || {};
+  } catch (error) {
+    console.error('Failed to fetch feature flags from Edge Config:', error);
+    return {};
+  }
+}
 
-  // Check localStorage override
-  const override = localStorage.getItem(`ff_${flag}`);
-  if (override !== null) return override === 'true';
+export async function getFeatureFlag(
+  flag: keyof FeatureFlags
+): Promise<boolean> {
+  // Fetch remote flags first
+  const edgeFlags = await getEdgeFlags();
+  const remoteFlag = edgeFlags[flag];
 
-  const flagConfig = defaultFlags[flag];
+  // Combine remote and default flags, with remote taking precedence
+  const flagConfig = remoteFlag
+    ? { ...defaultFlags[flag], ...remoteFlag }
+    : defaultFlags[flag];
 
-  // Simple rollout percentage check
-  if (flagConfig.rolloutPercentage !== undefined) {
-    const userId = getUserId();
-    const hash = simpleHash(userId + flag);
-    return hash % 100 < flagConfig.rolloutPercentage;
+  if (typeof window !== 'undefined') {
+    // Check localStorage override
+    const override = localStorage.getItem(`ff_${flag}`);
+    if (override !== null) return override === 'true';
+
+    // Simple rollout percentage check
+    if (flagConfig.rolloutPercentage !== undefined) {
+      const userId = getUserId();
+      const hash = simpleHash(userId + flag);
+      return hash % 100 < flagConfig.rolloutPercentage;
+    }
   }
 
   return flagConfig.enabled;
 }
 
 function getUserId(): string {
+  if (typeof window === 'undefined') return '';
   let userId = localStorage.getItem('userId');
   if (!userId) {
     userId = Math.random().toString(36).substring(2);
