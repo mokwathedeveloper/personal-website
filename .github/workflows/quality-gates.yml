@@ -1,0 +1,94 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npx pnpm install
+
+      - name: Run unit tests
+        run: npx pnpm --filter web test:coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./apps/web/coverage/lcov.info
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npx pnpm install
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Build app
+        run: npx pnpm build
+
+      - name: Run E2E tests
+        run: npx pnpm --filter web test:e2e
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npx pnpm install
+
+      - name: Build app
+        run: npx pnpm build
+
+      - name: Start app
+        run: npx pnpm start &
+
+      - name: Wait for app
+        run: npx wait-on http://localhost:3000
+
+      - name: Run Lighthouse
+        run: npx pnpm --filter web lighthouse
+
+  accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npx pnpm install
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
+      - name: Build app
+        run: npx pnpm build
+
+      - name: Run accessibility tests
+        run: npx pnpm --filter web test:e2e e2e/accessibility.spec.ts
