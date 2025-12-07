@@ -16,7 +16,9 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.4",
-    "lucide-react": "^0.454.0"
+    "lucide-react": "^0.454.0",
+    "@repo/ui": "workspace:*",
+    "@repo/types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.8.6",
